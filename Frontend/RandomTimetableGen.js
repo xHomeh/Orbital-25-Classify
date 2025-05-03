@@ -1,4 +1,4 @@
-async function fetchModuleData(courseCodesArray) {
+async function fetchModuleData(courseCodes) {
     const urlTemplate = "https://api.nusmods.com/v2/2023-2024/modules/";
   
     try {
@@ -21,9 +21,13 @@ async function fetchModuleData(courseCodesArray) {
   }
   
 
-function generateRandom(apiDataArray) {
-    apiDataArray.map()
+function generateRandom(apiDataArray, semester) {
+  const results = apiDataArray.map(modData => modData.semesterData)
+  const semData = results.map(yearData => yearData[semester - 1]);
+  const timetableData = semData.map(dict => dict.timetable);
+  return timetableData;
 }
+
 
 
 
@@ -31,7 +35,8 @@ function generateRandom(apiDataArray) {
 
   const modules = ["CS1101S", "MA2001", "IS1108"];
 
-  fetchModuleData(modules).then(data => {
-    console.log("Fetched Modules:", data);
-  });
-  
+  // fetchModuleData(modules).then(data => {
+  //   console.log("Fetched Modules:", data);
+  // });
+
+  fetchModuleData(modules).then(data => generateRandom(data, 1)).then(data => console.log(data));

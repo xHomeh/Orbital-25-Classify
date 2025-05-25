@@ -1,9 +1,0 @@
-@import "tailwindcss";
-
-.form-box {
-    display: none;
-}
-
-.form-box.active {
-    display: block;
-}

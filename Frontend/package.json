@@ -1,16 +1,39 @@
 {
   "name": "frontend",
   "version": "1.0.0",
-  "description": "tailwind",
+  "description": "classify",
   "main": "LoginPage.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --watch"
+    "dev": "postcss styles.css -o dist/styles.css",
+    "watch": "postcss styles.css -o dist/styles.css --watch",
+    "start": "react-scripts start"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tailwindcss/cli": "^4.1.7",
-    "tailwindcss": "^4.1.7"
+    "babel-jest": "^24.9.0",
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0",
+    "react-scripts": "^5.0.1",
+    "tailwind": "^4.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
   }
 }

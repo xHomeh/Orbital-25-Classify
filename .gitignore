@@ -1,3 +1,4 @@
-*git.log
+*.log
 Frontend/node_modules/
 Frontend/.vscode/
+node_modules/

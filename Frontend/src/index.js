@@ -6,6 +6,8 @@ import HomePage from './pages/HomePage';
 import Login from './pages/Login';
 import NotFoundPage from './pages/NotFoundPage';
 import Signup from './pages/Signup';
+import FriendsPage from './pages/FriendsPage';
+import SettingsPage from './pages/SettingsPage';
 
 import './index.css';
 
@@ -22,6 +24,14 @@ const router = createBrowserRouter([
     {
         path: '/signup',
         element: <Signup />,
+    },
+    {
+        path: '/friends',
+        element: <FriendsPage />,
+    },
+    {
+        path: '/settings',
+        element: <SettingsPage />,
     },
 ]);
 

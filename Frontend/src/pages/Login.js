@@ -36,7 +36,7 @@ function Login() {
                 className="border-2 border-orange-600 bg-orange-600 text-white py-1 w-full rounded-md hover:bg-transparent hover:text-orange-600 font-semibold">Login</button>
             </div>
             <div className="mt-3 flex">
-                <label htmlFor="register" className="block test-base mb-2">New to classNameify?</label>
+                <label htmlFor="register" className="block test-base mb-2">New to Classify?</label>
                 <Link className="px-1 text-sky-700 font-semibold" to="/signup">Sign Up</Link>
             </div>
             <div>

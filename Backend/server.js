@@ -34,7 +34,7 @@ app.post("/login", (req, res) => {
 
             const user = result[0];
 
-            bcrypt.compare(password, user.password, (err, isMatch) => {
+            bcrypt.compare(password, user.pass, (err, isMatch) => {
                 if (err) {
                     console.error("bcrypt error: ", err);
                     return res.status(500).json({ message: "Auth error" });
@@ -62,7 +62,7 @@ app.post("/signup", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         db.query(
-            "INSERT INTO users (username, password) VALUES (?, ?)",
+            "INSERT INTO users (username, pass) VALUES (?, ?)",
             [username, hashedPassword],
             (err, result) => {
                 if (err) {

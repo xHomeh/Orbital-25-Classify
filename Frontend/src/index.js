@@ -9,6 +9,8 @@ import Signup from './pages/Signup';
 import FriendsPage from './pages/FriendsPage';
 import SettingsPage from './pages/SettingsPage';
 
+import UserContext from './contexts/UserContext';
+
 import './index.css';
 
 const router = createBrowserRouter([
@@ -35,8 +37,18 @@ const router = createBrowserRouter([
     },
 ]);
 
+function Root() {
+    const [user, setUser] = React.useState(null);
+
+    return (
+        <UserContext.Provider value={{ user, setUser }}>
+            <RouterProvider router={router} />
+        </UserContext.Provider>
+    );
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-        <RouterProvider router={router} />
+        <Root />
     </React.StrictMode>
 )

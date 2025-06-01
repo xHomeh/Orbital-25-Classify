@@ -8,7 +8,7 @@ function Signup() {
     const [passwordReg, setPasswordReg] = useState('')
 
     const register = () => {
-        Axios.post('${process.env.REACT_APP_API_URL}/signup', {
+        Axios.post('/signup', {
             username: usernameReg, 
             password: passwordReg
         }).then((response) => {

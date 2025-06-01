@@ -15,7 +15,7 @@ function Login() {
 
     const login = async () => {
         try {
-            const response = await Axios.post('${process.env.REACT_APP_API_URL}/login', {
+            const response = await Axios.post('/login', {
                 username: usernameLogin, 
                 password: passwordLogin
             });

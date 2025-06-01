@@ -3,6 +3,7 @@ import React, { useState, useContext } from 'react'
 import Axios from 'axios'
 import UserContext from '../contexts/UserContext'
 
+
 function Login() {
 
     const [usernameLogin, setUsernameLogin] = useState('')
@@ -14,7 +15,7 @@ function Login() {
 
     const login = async () => {
         try {
-            const response = await Axios.post('http://localhost:3001/login', {
+            const response = await Axios.post('${process.env.REACT_APP_API_URL}/login', {
                 username: usernameLogin, 
                 password: passwordLogin
             });

@@ -12,7 +12,7 @@ function FriendsPage() {
 
     useEffect(() => {
         if (user) {
-            fetch(`/followers/${user.id}`)
+            fetch(`${process.env.REACT_APP_API_URL}/followers/${user.id}`)
                 .then(res => {
                     if (res.status === 304) return [];
                     if (!res.ok) throw new Error(`Error fetching followers: ${res.status}`);
@@ -23,7 +23,7 @@ function FriendsPage() {
                     console.error(err);
                     setMessage("Failed to load followers.");
                 });
-            fetch(`/following/${user.id}`)
+            fetch(`${process.env.REACT_APP_API_URL}/following/${user.id}`)
                 .then(res => {
                     if (res.status === 304) return [];
                     if (!res.ok) throw new Error(`Error fetching following: ${res.status}`);
@@ -48,7 +48,7 @@ function FriendsPage() {
                 return;
             }
             try {
-                const response = await fetch(`suggestedUsers?term=${searchTerm}&userId=${user.id}`);
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/suggestedUsers?term=${searchTerm}&userId=${user.id}`);
                 if (response.status === 304) {
                     setSuggestions([]);
                     return;
@@ -78,7 +78,7 @@ function FriendsPage() {
         }
 
         try {
-            const response = await fetch('/follow', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/follow`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id, followId })
@@ -92,7 +92,7 @@ function FriendsPage() {
                 setMessage(`Now following ${followId}`);
                 setSuggestions(suggestions.filter(u => u.id !== followId));
                 // refresh following
-                fetch(`/following/${user.id}`)
+                fetch(`${process.env.REACT_APP_API_URL}/following/${user.id}`)
                     .then(res => {
                         if (res.status === 304) return [];
                         if (!res.ok) throw new Error(`Error refreshing following: ${res.status}`);

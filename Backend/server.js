@@ -9,10 +9,9 @@ app.use(express.json());
 app.use(cors());
 
 const db = mysql.createConnection({
-    host: "localhost",
+    host: "gondola.proxy.rlwy.net",
     user: "root",
-    password: "password",
-    database: "orbitalusers"
+    password: "NGyPUlTqaNJSkpLCEIDvRXUoguUkSaik",
 })
 
 app.post("/login", (req, res) => {

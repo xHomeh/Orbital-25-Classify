@@ -13,6 +13,8 @@ import UserContext from './contexts/UserContext';
 
 import './index.css';
 
+Axios.defaults.baseURL = 'http://localhost:3001';
+
 const router = createBrowserRouter([
     {
         path: '/',

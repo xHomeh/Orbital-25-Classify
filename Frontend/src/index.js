@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter, RouterProvider, Routes, Route, createBrowserRouter} from 'react-router-dom';
+import Axios from 'axios'
 
 import HomePage from './pages/HomePage';
 import Login from './pages/Login';

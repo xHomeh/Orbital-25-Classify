@@ -15,7 +15,7 @@ function Login() {
 
     const login = async () => {
         try {
-            const response = await Axios.post('/login', {
+            const response = await Axios.post('https://classify-backend-production.up.railway.app/login', {
                 username: usernameLogin, 
                 password: passwordLogin
             });

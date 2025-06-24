@@ -1,4 +1,5 @@
 require('dotenv').config();
+console.log("DB Host:", process.env.DB_HOST);
 
 const express = require('express');
 const mysql = require('mysql');
@@ -11,6 +12,15 @@ const db = mysql.createConnection({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT
+});
+
+db.connect((err) => {
+  if (err) {
+    console.error("❌ Failed to connect to MySQL:", err.message);
+    process.exit(1); // ← this will stop the app if DB is unreachable
+  } else {
+    console.log("✅ Connected to MySQL database.");
+  }
 });
 
 const app = express();

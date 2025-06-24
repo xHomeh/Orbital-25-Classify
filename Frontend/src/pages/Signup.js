@@ -8,7 +8,7 @@ function Signup() {
     const [passwordReg, setPasswordReg] = useState('')
 
     const register = () => {
-        Axios.post('/signup', {
+        Axios.post('https://classify-backend-production.up.railway.app/signup', {
             username: usernameReg, 
             password: passwordReg
         }).then((response) => {

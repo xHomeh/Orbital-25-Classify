@@ -2,7 +2,7 @@ require('dotenv').config();
 console.log("DB Host:", process.env.DB_HOST);
 
 const express = require('express');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 
@@ -11,7 +11,7 @@ const db = mysql.createConnection({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT
+    port: process.env.DB_PORT || 3306
 });
 
 db.connect((err) => {

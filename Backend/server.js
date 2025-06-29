@@ -78,24 +78,25 @@ for signup page
 */
 
 app.post("/signup", async (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
-
+    const { username, password, faculty, enrolled_course, year_of_study, display_picture_link } = req.body;
     try {
-
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+        const query = `
+            INSERT INTO users 
+                (username, pass, faculty, enrolled_course, year_of_study, display_picture_link)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
         db.query(
-            "INSERT INTO users (username, pass) VALUES (?, ?)",
-            [username, hashedPassword],
+            query,
+            [username, hashedPassword, faculty, enrolled_course, year_of_study, display_picture_link],
             (err, result) => {
                 if (err) {
                     console.error("Database error: ", err);
                     return res.status(500).json({ message: "Database error" });
                 }
-
-                res.status(201).json({ message: "User successfully registered" });
+                res.status(201).json({ success: true, message: "User successfully registered" });
             }
         );
     } catch (error) {
@@ -103,6 +104,7 @@ app.post("/signup", async (req, res) => {
         return res.status(500).json({ message: "Hashing error" });
     }
 });
+
 
 /*
 for friends pages

@@ -81,10 +81,12 @@ function FriendsPage() {
             });
             setMessage(`Now following ${followUserName}`);
             setSuggestions(suggestions.filter(u => u.id !== followId));
-            // Refresh following list
+            // Refresh following and friends list
             try {
                 const followingRes = await axios.get(`https://classify-backend-production.up.railway.app/following/${user.id}`);
+                const friendsRes = await axios.get(`https://classify-backend-production.up.railway.app/friends/${user.id}`);
                 setFollowing(followingRes.data);
+                setFriends(friendsRes.data);
             } catch (refreshErr) {
                 console.error(refreshErr);
                 setMessage("Failed to refresh following list.");

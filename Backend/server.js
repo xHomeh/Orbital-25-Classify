@@ -247,7 +247,7 @@ for profile page
 app.get('/userInfo/:userId', (req, res) => {
     const userId = req.params.userId;
 
-    db.query('SELECT id, username, email, pictureUrl, year_of_study, enrolled_course, faculty FROM users WHERE id = ?', 
+    db.query('SELECT id, username, display_picture_link, year_of_study, enrolled_course, faculty FROM users WHERE id = ?', 
         [userId], 
         (err, results) => {
             if (err) return res.status(500).json({ error: "Database error" });

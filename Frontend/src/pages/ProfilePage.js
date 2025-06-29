@@ -7,6 +7,8 @@ function ProfilePage() {
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState('');
 
+    console.log("User context:", user);
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {

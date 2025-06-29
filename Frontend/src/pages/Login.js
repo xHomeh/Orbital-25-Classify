@@ -21,15 +21,20 @@ function Login() {
             });
 
             if (response.data.success) {
-                setUser({ username: response.data.user.username })
+                setUser({ 
+                    id: response.data.user.id,
+                    username: response.data.user.username })
                 navigate('/')
             } else {
                 setErrorMessage(response.data.message)
             }
-
         } catch (error) {    
             console.error("Login error: ", error);
-            setErrorMessage("An error occurred during login. Please try again.");
+            if (error.response && error.response.status === 401) {
+                setErrorMessage("Invalid username or password");
+            } else {
+                setErrorMessage("An error occurred during login. Please try again.");
+            }
         }
     }
 
@@ -50,6 +55,10 @@ function Login() {
                 <input type="password" id="password" placeholder="Enter Password..." onChange={e=>setPasswordLogin(e.target.value)}
                 className="border border-gray-200 w-full text-base px-2 py-1 focus:outline-none focus:ring-0 focus:border-gray-600" />
             </div>
+
+            {errorMessage && (
+                <div className="mt-3 text-red-600 font-semibold">{errorMessage}</div>
+            )}
 
             <div className="mt-5">
                 <button type="submit" onClick={login}

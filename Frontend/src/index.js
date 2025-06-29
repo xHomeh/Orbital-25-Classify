@@ -9,6 +9,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import Signup from './pages/Signup';
 import FriendsPage from './pages/FriendsPage';
 import SettingsPage from './pages/SettingsPage';
+import ProfilePage from './pages/ProfilePage';
 
 import UserContext from './contexts/UserContext';
 
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
     {
         path: '/settings',
         element: <SettingsPage />,
+    },
+    {
+        path: '/profile',
+        element: <ProfilePage />,
     },
 ]);
 

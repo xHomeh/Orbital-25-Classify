@@ -7,11 +7,11 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 3306
+    host: 'metro.proxy.rlwy.net',
+    user: 'root',
+    password: 'QfLwrbBoWQKgVyLxdSvwcrVkAOffYdza',
+    database: 'railway',
+    port: 23893
 });
 
 db.connect((err) => {
@@ -64,7 +64,7 @@ app.post("/login", (req, res) => {
                         user: {id: user.id, username: user.username}
                     });
                 } else {
-                    return res.status(200).json({ success: false, message: "Incorrect password" });
+                    return res.status(401).json({ success: false, message: "Incorrect password" });
                 }
 
             })
@@ -78,24 +78,25 @@ for signup page
 */
 
 app.post("/signup", async (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
-
+    const { username, password, faculty, enrolled_course, year_of_study, display_picture_link } = req.body;
     try {
-
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+        const query = `
+            INSERT INTO users 
+                (username, pass, faculty, enrolled_course, year_of_study, display_picture_link)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
         db.query(
-            "INSERT INTO users (username, pass) VALUES (?, ?)",
-            [username, hashedPassword],
+            query,
+            [username, hashedPassword, faculty, enrolled_course, year_of_study, display_picture_link],
             (err, result) => {
                 if (err) {
                     console.error("Database error: ", err);
                     return res.status(500).json({ message: "Database error" });
                 }
-
-                res.status(201).json({ message: "User successfully registered" });
+                res.status(201).json({ success: true, message: "User successfully registered" });
             }
         );
     } catch (error) {
@@ -104,102 +105,156 @@ app.post("/signup", async (req, res) => {
     }
 });
 
+
 /*
 for friends pages
 */
 
 // suggest users 
-app.get('/suggestedUsers', async (req, res) => {
+app.get('/suggestedUsers', (req, res) => {
     const { term } = req.query;
-    if (!term) return res.status(400).json({ message: "Search term is required" });
-    try {
-        const result = await db.query(
-            `
-            SELECT id, username FROM users
-            WHERE LOWER(username) LIKE LOWER(?)
-            ORDER BY username
-            LIMIT 10
-            `,
-            [`%${term}%`]); // wildcard for partial matches
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: "No users found" });
-        }
-        res.status(200).json(result.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Failed to fetch suggestions" });
+    if (!term) {
+      return res.status(400).json({ message: "Search term is required" });
     }
-})
+    db.query(
+        `
+        SELECT username, id
+        FROM users 
+        WHERE username LIKE ? 
+        ORDER BY username 
+        LIMIT 10
+        `,
+        [`%${term}%`], 
+        (err, results) => {
+            if (err) {
+                console.error("Error fetching suggestions:", err);
+                return res.status(500).json({ message: "Failed to fetch suggestions" });
+            }
+            if (!results || results.length === 0) {
+                return res.status(404).json({ message: "No users found" });
+            }
+            res.status(200).json(results);
+      }
+    );
+  });
 
 // follow user
-app.post('/follow', async (req, res) => {
+app.post('/follow', (req, res) => {
     const { userId, followId } = req.body;
-    if (!userId || !followId) {
-        return res.status(400).json({ message: "Username required" });
+    if (!userId) {
+        return res.status(400).json({ message: "userId is required." });
     }
-    if (userId === followId) {
-        return res.status(400).json({ message: "You cannot follow yourself" });
+    if (!followId) {
+        return res.status(400).json({ message: "followId is required." });
     }
-    try {
-        await db.query(
-            `
-            INSERT INTO user_following (user_id, followed_id)
-            VALUES (?, ?)
-            `,
-            [userId, followId]
-        );
-        res.status(201).json({ message: "Followed!" });
-    } catch (err) {
-        if (err.code === '23505') {
-            res.status(400).json({ error: "Already following this user" });
-        } else {
-            console.error(err);
-            res.status(500).json({ message: "Failed to follow" });
-        }
-    }
-});
+    db.query(
+        `
+        INSERT INTO user_following (user_id, followed_id)
+        VALUES (?, ?)
+        `,
+        [userId, followId],
+        (err, result) => {
+            if (err) {
+                if (err.code === 'ER_DUP_ENTRY') {  // MySQL duplicate entry error
+                    return res.status(400).json({ error: "Already following this user" });
+                } else {
+                    console.error("Follow error:", err);
+                    return res.status(500).json({ message: "Failed to follow" });
+                }
+            }
+            res.status(201).json({ message: "Followed!" });
+      }
+    );
+  });
 
 // get followers
-app.get('/followers/:userID', async (req, res) => {
-    const { userId } = req.params;
-    if (!userId) return res.status(400).json({ message: "User ID is required" });
-
-    try {
-        const result = await db.query(
-            `
-            SELECT u.id, u.username
-            FROM users u
-            JOIN user_following uf ON u.id = uf.followed_id
-            WHERE uf.user_id = ?
-            `,
-            [userId]
-        );
-        res.status(200).json(result);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Failed to fetch followers" });
+app.get('/followers/:userID', (req, res) => {
+    const { userID } = req.params;
+  
+    if (!userID) {
+      return res.status(400).json({ message: "User ID is required" });
     }
-});
+  
+    db.query(
+        `
+        SELECT u.id, u.username
+        FROM user_following uf
+        JOIN users u ON uf.user_id = u.id
+        WHERE uf.followed_id = ?
+        `,
+        [userID],
+        (err, results) => {
+            if (err) {
+                console.error("Error fetching followers:", err);
+                return res.status(500).json({ message: "Failed to fetch followers" });
+            }
+            res.status(200).json(results);
+        }
+    );
+  });
+  
 
 // get following
-app.get('/following/:userID', async (req, res) => {
-    const { userId } = req.params;
-    if (!userId) return res.status(400).json({ message: "User ID is required" });
-    try {
-        const result = await db.query(
-            `
-            SELECT u.id, u.username
-            FROM users u
-            JOIN user_following uf ON u.id = uf.user_id
-            WHERE uf.followed_id = ?
-            `,
-            [userId]
-        );
-        res.status(200).json(result);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Failed to fetch following" });
+app.get('/following/:userID', (req, res) => {
+    const { userID } = req.params;
+  
+    if (!userID) {
+      return res.status(400).json({ message: "User ID is required" });
     }
+  
+    db.query(
+        `
+        SELECT u.id, u.username
+        FROM user_following uf
+        JOIN users u ON u.id = uf.followed_id
+        WHERE uf.user_id = ?
+        `,
+        [userID],
+        (err, results) => {
+            if (err) {
+                console.error("Error fetching following:", err);
+                return res.status(500).json({ message: "Failed to fetch following" });
+            }
+            res.status(200).json(results);
+        }
+    );
+  });
+
+// get friends
+app.get('/friends/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    const query = `
+        SELECT u.id, u.username
+        FROM users u
+        INNER JOIN user_following f1 ON f1.followed_id = u.id AND f1.user_id = ?
+        INNER JOIN user_following f2 ON f2.user_id = u.id AND f2.followed_id = ?
+    `;
+
+    db.query(query, [userId, userId], (err, results) => {
+        if (err) {
+            console.error("Error fetching friends:", err);
+            return res.status(500).json({ message: "Failed to fetch friends" });
+        }
+        res.json(results);
+    });
+});
+
+/* 
+for profile page
+*/ 
+
+app.get('/userInfo/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    db.query('SELECT id, username, email, pictureUrl, year_of_study, enrolled_course, faculty FROM users WHERE id = ?', 
+        [userId], 
+        (err, results) => {
+            if (err) return res.status(500).json({ error: "Database error" });
+            if (results.length === 0) return res.status(404).json({ error: "User not found" });
+            res.json(results[0]);
+        }
+    );
 });
 
 /*

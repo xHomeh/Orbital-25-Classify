@@ -210,7 +210,12 @@ function FriendsPage() {
                             <ul className="space-y-1">
                                 {friends.map((user) => (
                                     <li key={user.id} className="text-white px-1 py-1">
-                                        {user.username}
+                                        <Link
+                                            to={`/profile/${user.id}`}
+                                            className="hover:font-bold hover:text-white"
+                                        >
+                                            {user.username}
+                                        </Link>
                                     </li>
                                 ))}
                             </ul>

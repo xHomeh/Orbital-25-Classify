@@ -100,7 +100,7 @@ function HomePage() {
                 {/* if logged in, show user, else link to login page*/}   
                 {user ? (
                     <Link
-                        to="/profile"
+                        to={`/profile/${user.id}`}
                         className="flex w-auto h-full justify-start text-white font-bold text-xl px-3 py-2 absolute top-0 right-0 hover:text-orange-600"
                     >
                         Welcome, {user.username}

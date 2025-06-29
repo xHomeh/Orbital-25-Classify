@@ -1,28 +1,25 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import UserContext from '../contexts/UserContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 function ProfilePage() {
-    const { user } = useContext(UserContext);
+    const { id } = useParams();
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState('');
-
-    console.log("User context:", user);
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await axios.get(`https://classify-backend-production.up.railway.app/userInfo/${user.id}`);
+                const response = await axios.get(`https://classify-backend-production.up.railway.app/userInfo/${id}`);
                 setProfile(response.data);
             } catch (err) {
                 setError('Failed to load profile');
             }
         };
-        if (user) {
+        if (id) {
             fetchProfile();
         }
-    }, [user]);
+    }, [id]);
 
     if (error) return <p>{error}</p>;
     if (!profile) return <p>Loading profile...</p>;

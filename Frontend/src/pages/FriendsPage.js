@@ -30,6 +30,12 @@ function FriendsPage() {
         fetchData();
     }, [user]);
 
+    // to reset
+    const onSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setMessage('');
+      };
+    
     useEffect(() => {
         const fetchSuggestions = async () => {
             if (searchTerm.length < 2) {
@@ -43,7 +49,6 @@ function FriendsPage() {
                 setSuggestions(response.data);
                 setMessage(''); 
             } catch (error) {
-                // no users found
                 if (error.response && error.response.status === 404) {
                     setSuggestions([]);
                     setMessage('No users found.');
@@ -130,25 +135,22 @@ function FriendsPage() {
                     <input
                         type="text"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={onSearchChange}
                         placeholder="Search users to follow..."
                         className="w-full border border-gray-300 rounded px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
                     />
         
-                    {/* message */}
-                    {message && <p className="text-green-600 mt-2">{message}</p>}
-
                     {/* suggestions popup, clickable users */}
                     {suggestions.length > 0 && (
-                        <ul className="border border-gray-300 rounded bg-white shadow mt-1 max-h-60 overflow-y-auto">
+                        <ul className="border border-gray-500 bg-neutral-700 text-white rounded shadow-md mt-2 max-h-60 overflow-y-auto">
                             {suggestions.map((user) => (
                                 <li
                                     key={user.id}
-                                    className="flex justify-between items-center px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                                    className="flex justify-between items-center px-4 py-2 cursor-pointer"
                                 >
                                     <span>{user.username}</span>
                                     <button
-                                        className="text-sm text-blue-500 hover:underline"
+                                        className="text-sm text-white hover:underline"
                                         onClick={() => handleFollow(user.id)}
                                     >
                                         Follow
@@ -157,6 +159,9 @@ function FriendsPage() {
                             ))}
                         </ul>
                     )}
+
+                    {/* message */}
+                    {message && <p className="text-green-600 mt-2">{message}</p>}
 
                     {/* following list */}
                     <div className="mt-4">

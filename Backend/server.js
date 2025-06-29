@@ -139,15 +139,12 @@ app.get('/suggestedUsers', (req, res) => {
 // follow user
 app.post('/follow', (req, res) => {
     const { userId, followId } = req.body;
-  
-    if (!userId || !followId) {
-      return res.status(400).json({ message: "Username required" });
+    if (!userId) {
+        return res.status(400).json({ message: "userId is required." });
     }
-  
-    if (userId === followId) {
-      return res.status(400).json({ message: "You cannot follow yourself" });
+    if (!followId) {
+        return res.status(400).json({ message: "followId is required." });
     }
-  
     db.query(
         `
         INSERT INTO user_following (user_id, followed_id)
@@ -220,6 +217,26 @@ app.get('/following/:userID', (req, res) => {
         }
     );
   });
+
+// get friends
+app.get('/friends/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    const query = `
+        SELECT u.id, u.username
+        FROM users u
+        INNER JOIN user_following f1 ON f1.followed_id = u.id AND f1.user_id = ?
+        INNER JOIN user_following f2 ON f2.user_id = u.id AND f2.followed_id = ?
+    `;
+
+    db.query(query, [userId, userId], (err, results) => {
+        if (err) {
+            console.error("Error fetching friends:", err);
+            return res.status(500).json({ message: "Failed to fetch friends" });
+        }
+        res.json(results);
+    });
+});
   
 /*
 for home page

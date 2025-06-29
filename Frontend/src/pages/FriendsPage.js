@@ -10,6 +10,7 @@ function FriendsPage() {
     const [message, setMessage] = useState('');
     const [followers, setFollowers] = useState([]);
     const [following, setFollowing] = useState([]);
+    const [friends, setFriends] = useState([]);
 
     useEffect(() => {
         if (!user) return;
@@ -19,12 +20,15 @@ function FriendsPage() {
                 setFollowers(followersRes.data);
                 const followingRes = await axios.get(`https://classify-backend-production.up.railway.app/following/${user.id}`);
                 setFollowing(followingRes.data);
+                const friendsRes = await axios.get(`https://classify-backend-production.up.railway.app/friends/${user.id}`);
+                setFriends(friendsRes.data);
                 setMessage("");
             } catch (err) {
                 console.error(err);
                 setMessage("Failed to load followers or following.");
                 setFollowers([]);
                 setFollowing([]);
+                setFriends([]);
             }
         };
         fetchData();
@@ -61,7 +65,7 @@ function FriendsPage() {
         fetchSuggestions();
     }, [searchTerm]);
 
-    const handleFollow = async (followId) => {
+    const handleFollow = async (followId, followUserName) => {
         if (!user) {
             setMessage("You must be logged in to follow users.");
             return;
@@ -70,20 +74,16 @@ function FriendsPage() {
             setMessage("You cannot follow yourself.");
             return;
         }
-
         try {
-            const response = await axios.post('/follow', {
+            const response = await axios.post('https://classify-backend-production.up.railway.app/follow', {
                 userId: user.id,
                 followId
             });
-
-            // Axios throws for non-2xx responses, so no need to check 304 explicitly
-            setMessage(`Now following ${followId}`);
+            setMessage(`Now following ${followUserName}`);
             setSuggestions(suggestions.filter(u => u.id !== followId));
-
             // Refresh following list
             try {
-                const followingRes = await axios.get(`/following/${user.id}`);
+                const followingRes = await axios.get(`https://classify-backend-production.up.railway.app/following/${user.id}`);
                 setFollowing(followingRes.data);
             } catch (refreshErr) {
                 console.error(refreshErr);
@@ -93,7 +93,7 @@ function FriendsPage() {
             if (error.response) {
                 // handle 400 or custom errors from server
                 if (error.response.status === 304) {
-                    setMessage(`Already following ${followId}`);
+                    setMessage(`Already following`);
                 } else {
                     setMessage(error.response.data.message || error.response.data.error || 'Failed to follow user.');
                 }
@@ -102,7 +102,7 @@ function FriendsPage() {
                 setMessage("Failed to follow user.");
             }
         }
-    };
+    }; 
     
     return (
         <div className="bg-neutral-800 min-h-screen">
@@ -150,8 +150,8 @@ function FriendsPage() {
                                 >
                                     <span>{user.username}</span>
                                     <button
-                                        className="text-sm text-white hover:underline"
-                                        onClick={() => handleFollow(user.id)}
+                                        className="text-sm text-white hover:underline hover:text-orange-600"
+                                        onClick={() => handleFollow(user.id, user.username)}
                                     >
                                         Follow
                                     </button>
@@ -167,11 +167,11 @@ function FriendsPage() {
                     <div className="mt-4">
                         <h2 className="text-lg font-semibold text-orange-600 mb-2">You are following:</h2>
                         {following.length > 0 ? (
-                            <ul className="divide-y divide-gray-200 border border-gray-300 rounded shadow bg-white">
+                            <ul className="space-y-1">
                                 {following.map((user) => (
                                     <li
                                         key={user.id}
-                                        className="px-4 py-2 hover:bg-blue-50 transition-colors text-orange-600"
+                                        className="text-white px-1 py-1"
                                     >
                                         {user.username}
                                     </li>
@@ -186,11 +186,11 @@ function FriendsPage() {
                     <div className="mt-4">
                         <h2 className="text-lg font-semibold text-orange-600 mb-2">Your followers:</h2>
                         {followers.length > 0 ? (
-                            <ul className="divide-y divide-gray-200 border border-gray-300 rounded shadow bg-white">
+                            <ul className="space-y-1">
                                 {followers.map((user) => (
                                     <li
                                         key={user.id}
-                                        className="px-4 py-2 hover:bg-blue-50 transition-colors text-orange-600"
+                                        className="text-white px-1 py-1"
                                     >
                                         {user.username}
                                     </li>
@@ -200,9 +200,24 @@ function FriendsPage() {
                             <p className="text-sm text-gray-400">No followers yet.</p>
                         )}
                     </div>
+                    
+                    {/* friends list */}
+                    <div className="mt-4">
+                        <h2 className="text-lg font-semibold text-orange-600 mb-2">Your friends:</h2>
+                        {friends.length > 0 ? (
+                            <ul className="space-y-1">
+                                {friends.map((user) => (
+                                    <li key={user.id} className="text-white px-1 py-1">
+                                        {user.username}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-gray-400">You have no friends yet, search users to follow and make friends!</p>
+                        )}
+                    </div>
                 </div>
             </div>
-
         </div>
     );
 }

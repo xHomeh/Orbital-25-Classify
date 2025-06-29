@@ -21,7 +21,9 @@ function Login() {
             });
 
             if (response.data.success) {
-                setUser({ username: response.data.user.username })
+                setUser({ 
+                    id: response.data.user.id,
+                    username: response.data.user.username })
                 navigate('/')
             } else {
                 setErrorMessage(response.data.message)

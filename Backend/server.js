@@ -28,6 +28,10 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+/*
+for login page
+*/
+
 app.post("/login", (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
@@ -69,6 +73,10 @@ app.post("/login", (req, res) => {
     );
 });
 
+/*
+for signup page
+*/
+
 app.post("/signup", async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
@@ -96,6 +104,10 @@ app.post("/signup", async (req, res) => {
     }
 });
 
+/*
+for friends pages
+*/
+
 // suggest users 
 app.get('/suggestedUsers', async (req, res) => {
     const { term } = req.query;
@@ -104,12 +116,12 @@ app.get('/suggestedUsers', async (req, res) => {
         const result = await db.query(
             `
             SELECT id, username FROM users
-            WHERE username LIKE ?
+            WHERE LOWER(username) LIKE LOWER(?)
             ORDER BY username
             LIMIT 10
             `,
             [`%${term}%`]); // wildcard for partial matches
-        if (result.length === 0) {
+        if (result.rows.length === 0) {
             return res.status(404).json({ message: "No users found" });
         }
         res.status(200).json(result.rows);
@@ -179,7 +191,7 @@ app.get('/following/:userID', async (req, res) => {
             SELECT u.id, u.username
             FROM users u
             JOIN user_following uf ON u.id = uf.user_id
-            WHERE uf.followed_id = $1
+            WHERE uf.followed_id = ?
             `,
             [userId]
         );
@@ -189,6 +201,10 @@ app.get('/following/:userID', async (req, res) => {
         res.status(500).json({ message: "Failed to fetch following" });
     }
 });
+
+/*
+for home page
+*/
 
 app.listen(3001, () => {
     console.log("Listening...");

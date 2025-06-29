@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import React, { useContext, useState, useEffect } from 'react'
 import UserContext from '../contexts/UserContext'
+import axios from 'axios'
 
 function FriendsPage() {
     const { user } = useContext(UserContext);
@@ -11,59 +12,47 @@ function FriendsPage() {
     const [following, setFollowing] = useState([]);
 
     useEffect(() => {
-        if (user) {
-            fetch(`/followers/${user.id}`)
-                .then(res => {
-                    if (res.status === 304) return [];
-                    if (!res.ok) throw new Error(`Error fetching followers: ${res.status}`);
-                    return res.json();
-                })
-                .then(data => setFollowers(data))
-                .catch(err => {
-                    console.error(err);
-                    setMessage("Failed to load followers.");
-                });
-            fetch(`/following/${user.id}`)
-                .then(res => {
-                    if (res.status === 304) return [];
-                    if (!res.ok) throw new Error(`Error fetching following: ${res.status}`);
-                    return res.json();
-                })
-                .then(data => setFollowing(data))
-                .catch(err => {
-                    console.error(err);
-                    setMessage("Failed to load following.");
-                });
-        }
-    }, [user])
+        if (!user) return;
+        const fetchData = async () => {
+            try {
+                const followersRes = await axios.get(`https://classify-backend-production.up.railway.app/followers/${user.id}`);
+                setFollowers(followersRes.data);
+                const followingRes = await axios.get(`https://classify-backend-production.up.railway.app/following/${user.id}`);
+                setFollowing(followingRes.data);
+                setMessage("");
+            } catch (err) {
+                console.error(err);
+                setMessage("Failed to load followers or following.");
+                setFollowers([]);
+                setFollowing([]);
+            }
+        };
+        fetchData();
+    }, [user]);
 
     useEffect(() => {
         const fetchSuggestions = async () => {
-            if (!user) {
-                setSuggestions([]);
-                return;
-              }
             if (searchTerm.length < 2) {
                 setSuggestions([]);
                 return;
             }
             try {
-                const response = await fetch(`/suggestedUsers?term=${searchTerm}&userId=${user.id}`);
-                if (response.status === 304) {
-                    setSuggestions([]);
-                    return;
-                }
-                if (!response.ok) {
-                    const text = await response.text(); // read error text (HTML or message)
-                    throw new Error(`Server responded with status ${response.status}: ${text}`);
-                }
-                const data = await response.json();
-                setSuggestions(data);
+                const response = await axios.get('https://classify-backend-production.up.railway.app/suggestedUsers', {
+                    params: { term: searchTerm }
+                });
+                setSuggestions(response.data);
+                setMessage(''); 
             } catch (error) {
-                console.error("Error fetching suggestions:", error);
-                setMessage("Failed to fetch suggestions.");
+                // no users found
+                if (error.response && error.response.status === 404) {
+                    setSuggestions([]);
+                    setMessage('No users found.');
+                } else {
+                    console.error('Error fetching suggestions:', error);
+                    setMessage('Failed to fetch suggestions.');
+                }
             }
-        }
+        };
         fetchSuggestions();
     }, [searchTerm]);
 
@@ -78,37 +67,35 @@ function FriendsPage() {
         }
 
         try {
-            const response = await fetch(`/follow`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, followId })
+            const response = await axios.post('/follow', {
+                userId: user.id,
+                followId
             });
-            if (response.status === 304) {
-                setMessage(`Already following ${followId}`);
-                return;
+
+            // Axios throws for non-2xx responses, so no need to check 304 explicitly
+            setMessage(`Now following ${followId}`);
+            setSuggestions(suggestions.filter(u => u.id !== followId));
+
+            // Refresh following list
+            try {
+                const followingRes = await axios.get(`/following/${user.id}`);
+                setFollowing(followingRes.data);
+            } catch (refreshErr) {
+                console.error(refreshErr);
+                setMessage("Failed to refresh following list.");
             }
-            const data = await response.json();
-            if (response.ok) {
-                setMessage(`Now following ${followId}`);
-                setSuggestions(suggestions.filter(u => u.id !== followId));
-                // refresh following
-                fetch(`/following/${user.id}`)
-                    .then(res => {
-                        if (res.status === 304) return [];
-                        if (!res.ok) throw new Error(`Error refreshing following: ${res.status}`);
-                        return res.json();
-                    })
-                    .then(data => setFollowing(data))
-                    .catch(err => {
-                        console.error(err);
-                        setMessage("Failed to refresh following list.");
-                    });
+        } catch (error) {
+            if (error.response) {
+                // handle 400 or custom errors from server
+                if (error.response.status === 304) {
+                    setMessage(`Already following ${followId}`);
+                } else {
+                    setMessage(error.response.data.message || error.response.data.error || 'Failed to follow user.');
+                }
             } else {
-                setMessage(data.message || data.error);
+                console.error("Follow error:", error);
+                setMessage("Failed to follow user.");
             }
-        } catch (err) {
-            console.error("Follow error:", err);
-            setMessage("Failed to follow user.");
         }
     };
     
@@ -137,29 +124,31 @@ function FriendsPage() {
             </div>
             <h1 className="text-gray-300 mt-4 mx-4">WORK IN PROGRESS!</h1>
 
-            {/* search bar */}
-            <input
-                type="text"
-                placeholder="Search users to follow..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="mt-4 p-2 rounded bg-neutral-700 text-white w-full max-w-md"
-            />
+            <div className="p-4">
+                <div className="mb-6 max-w-md">
+                    {/* search bar with user input */}
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search users to follow..."
+                        className="w-full border border-gray-300 rounded px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-200"
+                    />
+        
+                    {/* message */}
+                    {message && <p className="text-green-600 mt-2">{message}</p>}
 
-            {/* message */}
-            {message && <p className="text-green-400 mt-2">{message}</p>}
-
-            {/* suggested users */}
-            <div className="mt-4">
-                {suggestions.length > 0 && (
-                    <div>
-                        <h2 className="text-lg mb-2 text-orange-500">Suggested Users:</h2>
-                        <ul className="space-y-2">
-                            {suggestions.map(user => (
-                                <li key={user.id} className="flex justify-between bg-neutral-700 p-2 rounded">
+                    {/* suggestions popup, clickable users */}
+                    {suggestions.length > 0 && (
+                        <ul className="border border-gray-300 rounded bg-white shadow mt-1 max-h-60 overflow-y-auto">
+                            {suggestions.map((user) => (
+                                <li
+                                    key={user.id}
+                                    className="flex justify-between items-center px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                                >
                                     <span>{user.username}</span>
                                     <button
-                                        className="text-sm text-orange-400 hover:text-white"
+                                        className="text-sm text-blue-500 hover:underline"
                                         onClick={() => handleFollow(user.id)}
                                     >
                                         Follow
@@ -167,28 +156,46 @@ function FriendsPage() {
                                 </li>
                             ))}
                         </ul>
+                    )}
+
+                    {/* following list */}
+                    <div className="mt-4">
+                        <h2 className="text-lg font-semibold text-orange-600 mb-2">You are following:</h2>
+                        {following.length > 0 ? (
+                            <ul className="divide-y divide-gray-200 border border-gray-300 rounded shadow bg-white">
+                                {following.map((user) => (
+                                    <li
+                                        key={user.id}
+                                        className="px-4 py-2 hover:bg-blue-50 transition-colors text-orange-600"
+                                    >
+                                        {user.username}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-gray-400">You're not following anyone yet.</p>
+                        )}
                     </div>
-                )}
-            </div>
 
-            {/* following List */}
-            <div className="mt-6">
-                <h2 className="text-lg text-orange-500 mb-2">You are following:</h2>
-                <ul className="space-y-1">
-                    {following.map(user => (
-                        <li key={user.id} className="text-gray-300">{user.username}</li>
-                    ))}
-                </ul>
-            </div>
-
-            {/* followers List */}
-            <div className="mt-6">
-                <h2 className="text-lg text-orange-500 mb-2">Your followers:</h2>
-                <ul className="space-y-1">
-                    {followers.map(user => (
-                        <li key={user.id} className="text-gray-300">{user.username}</li>
-                    ))}
-                </ul>
+                    {/* followers list */}
+                    <div className="mt-4">
+                        <h2 className="text-lg font-semibold text-orange-600 mb-2">Your followers:</h2>
+                        {followers.length > 0 ? (
+                            <ul className="divide-y divide-gray-200 border border-gray-300 rounded shadow bg-white">
+                                {followers.map((user) => (
+                                    <li
+                                        key={user.id}
+                                        className="px-4 py-2 hover:bg-blue-50 transition-colors text-orange-600"
+                                    >
+                                        {user.username}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-gray-400">No followers yet.</p>
+                        )}
+                    </div>
+                </div>
             </div>
 
         </div>

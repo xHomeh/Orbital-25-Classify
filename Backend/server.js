@@ -16,10 +16,10 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error("❌ Failed to connect to MySQL:", err.message);
+    console.error("Failed to connect to MySQL:", err.message);
     process.exit(1); // ← this will stop the app if DB is unreachable
   } else {
-    console.log("✅ Connected to MySQL database.");
+    console.log("Connected to MySQL database.");
   }
 });
 

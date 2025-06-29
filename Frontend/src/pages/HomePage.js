@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Link, useNavigate } from "react-router-dom"
+import axios from 'axios'
 import UserContext from '../contexts/UserContext'
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
@@ -48,27 +49,52 @@ function HomePage() {
         .then(data => setAllModules(data));
     }, []);
 
+    // load saved modules for logged in user
+    useEffect(() => {
+        if (user) {
+            axios.get(`https://classify-backend-production.up.railway.app/api/getModules/${user.id}`)
+                .then(res => {
+                    // Convert DB data to your timetable format if needed
+                    setClasses(res.data || []);
+                })
+                .catch(err => {
+                    console.error("Error loading saved modules", err);
+                });
+        }
+    }, [user]);
+
     // updates selected classes state, takes in module code and semester (default to 1)
     // to make the timetable for now, replace with RandomTimetableGenerator + saving logged modules logic after
     const addModule = async (moduleCode, semester = 1) => {
-        const res = await fetch(`https://api.nusmods.com/v2/2024-2025/modules/${moduleCode}.json`);
-        const data = await res.json();
-        const timetable = data.semesterData.find(s => s.semester === semester)?.timetable || [];
+        try {
+            const res = await fetch(`https://api.nusmods.com/v2/2024-2025/modules/${moduleCode}.json`);
+            const data = await res.json();
+            const timetable = data.semesterData.find(s => s.semester === semester)?.timetable || [];
 
-        const selectedTypes = {};
-        const chosenClasses = [];
+            const selectedTypes = {};
+            const chosenClasses = [];
 
-        for (const cls of timetable) {
-        if (!selectedTypes[cls.lessonType]) {
-            selectedTypes[cls.lessonType] = true;
-            chosenClasses.push({
-            ...cls,
-            moduleCode,
-            });
+            for (const cls of timetable) {
+                if (!selectedTypes[cls.lessonType]) {
+                    selectedTypes[cls.lessonType] = true;
+                    chosenClasses.push({
+                    ...cls,
+                    moduleCode,
+                    });
+                }
+            }
+
+            setClasses(prev => [...prev, ...chosenClasses]);
+
+            if (user) {
+                await axios.post('https://classify-backend-production.up.railway.app/api/saveModules', {
+                    userId: user.id,
+                    classes: chosenClasses,
+                });
+            }
+        } catch (err) {
+            console.error("Error adding module", err);
         }
-        }
-
-        setClasses(prev => [...prev, ...chosenClasses]);
     };
 
     // updates suggested modules based on the current search term
@@ -76,10 +102,10 @@ function HomePage() {
         const value = e.target.value.toUpperCase();
         setSearchTerm(value);
         if (value.length > 1) {
-        const filtered = allModules.filter(m => m.moduleCode.startsWith(value)).slice(0, 10);
-        setSuggestions(filtered);
+            const filtered = allModules.filter(m => m.moduleCode.startsWith(value)).slice(0, 10);
+            setSuggestions(filtered);
         } else {
-        setSuggestions([]);
+            setSuggestions([]);
         }
     };
 

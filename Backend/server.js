@@ -261,6 +261,43 @@ app.get('/userInfo/:userId', (req, res) => {
 for home page
 */
 
+// save modules
+app.post('/api/saveModules', async (req, res) => {
+    console.log('POST /api/saveModules', req.body)
+    const { userId, classes } = req.body;
+
+    try {
+        const insertPromises = classes.map(cls => {
+            return db.query(
+                `INSERT INTO user_classes (user_id, module_code, class_no, lesson_type, day, start_time, end_time, venue)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE day = VALUES(day), start_time = VALUES(start_time), end_time = VALUES(end_time), venue = VALUES(venue)`,
+                [userId, cls.moduleCode, cls.classNo, cls.lessonType, cls.day, cls.startTime, cls.endTime, cls.venue]
+            );
+        });
+
+        await Promise.all(insertPromises);
+        res.status(200).send("Modules saved successfully");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error saving modules");
+    }
+});
+
+// get saved classes
+app.get('/api/getModules/:userId', async (req, res) => {
+    console.log('working')
+    const userId = req.params.userId;
+
+    try {
+        const [rows] = await db.query(`SELECT * FROM user_classes WHERE user_id = ?`, [userId]);
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error retrieving modules");
+    }
+});
+
 app.listen(3001, () => {
     console.log("Listening...");
 })

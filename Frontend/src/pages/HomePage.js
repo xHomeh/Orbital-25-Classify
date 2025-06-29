@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import UserContext from '../contexts/UserContext'
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
@@ -97,13 +97,19 @@ function HomePage() {
             <div className="w-full flex flex-row bg-neutral-800 h-[1/10]">
                 <Link to="/" className="flex w-[1/10] h-full justify-end text-orange-600 text-xl block text-left px-3 py-2 hover:text-white">Classify</Link>
                 <div className="flex w-[8/10] h-full"></div>  
-                {/* if logged in, show user, else link  to login page*/}   
+                {/* if logged in, show user, else link to login page*/}   
                 {user ? (
-                    <div className="flex w-[1/10] h-full justify-start text-white font-bold text-xl px-3 py-2 absolute top-0 right-0">
+                    <Link
+                        to="/profile"
+                        className="flex w-auto h-full justify-start text-white font-bold text-xl px-3 py-2 absolute top-0 right-0 hover:text-orange-600"
+                    >
                         Welcome, {user.username}
-                    </div>
-                ) : (     
-                    <Link to="/login" className="flex w-[1/10] h-full justify-start text-orange-600 text-xl block text-right px-3 py-2 absolute top-0 right-0 hover:text-white">
+                    </Link>
+                ) : (
+                    <Link
+                        to="/login"
+                        className="flex w-[1/10] h-full justify-start text-orange-600 text-xl block text-right px-3 py-2 absolute top-0 right-0 hover:text-white"
+                    >
                         Login
                     </Link>
                 )}

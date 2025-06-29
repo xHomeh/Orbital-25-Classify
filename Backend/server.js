@@ -239,7 +239,24 @@ app.get('/friends/:userId', (req, res) => {
         res.json(results);
     });
 });
-  
+
+/* 
+for profile page
+*/ 
+
+app.get('/userInfo/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    db.query('SELECT id, username, email, pictureUrl, year_of_study, enrolled_course, faculty FROM users WHERE id = ?', 
+        [userId], 
+        (err, results) => {
+            if (err) return res.status(500).json({ error: "Database error" });
+            if (results.length === 0) return res.status(404).json({ error: "User not found" });
+            res.json(results[0]);
+        }
+    );
+});
+
 /*
 for home page
 */

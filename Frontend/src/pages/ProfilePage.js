@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import UserContext from '../contexts/UserContext';
+import { Link, useNavigate } from 'react-router-dom';
 
 function ProfilePage() {
     const { user } = useContext(UserContext);
@@ -12,7 +13,7 @@ function ProfilePage() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await axios.get(`http://localhost:3001/userInfo/${user.id}`);
+                const response = await axios.get(`https://classify-backend-production.up.railway.app/userInfo/${user.id}`);
                 setProfile(response.data);
             } catch (err) {
                 setError('Failed to load profile');
@@ -27,13 +28,28 @@ function ProfilePage() {
     if (!profile) return <p>Loading profile...</p>;
 
     return (
-        <div className="p-6 max-w-2xl mx-auto">
-            <h1 className="text-3xl font-bold mb-4">{profile.username}'s Profile</h1>
-            <img src={profile.pictureUrl} alt="Profile" className="w-32 h-32 rounded-full mb-4" />
-            <p><strong>Email:</strong> {profile.email}</p>
-            <p><strong>Year of Study:</strong> {profile.year_of_study}</p>
-            <p><strong>Course:</strong> {profile.enrolled_course}</p>
-            <p><strong>Faculty:</strong> {profile.faculty}</p>
+        <div className="bg-neutral-800 min-h-screen text-white px-4 py-8">
+            <div className="flex items-center space-x-6 px-4">
+                <img
+                    src={profile.display_picture_link}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full object-cover border border-gray-600"
+                />
+                <h1 className="text-3xl font-bold">{profile.username}</h1>
+            </div>
+            <div className="mt-6 px-4 text-gray-300 space-y-2 text-lg">
+                <p><span className="text-gray-400">Year of study:</span> {profile.year_of_study}</p>
+                <p><span className="text-gray-400">Enrolled course:</span> {profile.enrolled_course}</p>
+                <p><span className="text-gray-400">Faculty:</span> {profile.faculty}</p>
+            </div>
+            <div className="mt-10 b-6 px-4">
+                <Link
+                    to="/"
+                    className="text-orange-600 hover:text-white hover:underline text-lg"
+                >
+                    ← Back to Home
+                </Link>
+            </div>
         </div>
     );
 }

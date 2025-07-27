@@ -17,7 +17,7 @@ function Login() {
         try {
             const response = await Axios.post('https://classify-backend-production.up.railway.app/login', {
                 username: usernameLogin, 
-                password: passwordLogin
+                pass: passwordLogin
             });
 
             if (response.data.success) {

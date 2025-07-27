@@ -7,11 +7,11 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 
 const db = mysql.createConnection({
-    host: 'metro.proxy.rlwy.net',
-    user: 'root',
-    password: 'QfLwrbBoWQKgVyLxdSvwcrVkAOffYdza',
-    database: 'railway',
-    port: 23893
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT || 3306
 });
 
 db.connect((err) => {
@@ -34,7 +34,7 @@ for login page
 
 app.post("/login", (req, res) => {
     const username = req.body.username;
-    const password = req.body.password;
+    const pass = req.body.pass;
 
     db.query(
         "SELECT * FROM users WHERE username = ?",
@@ -51,7 +51,7 @@ app.post("/login", (req, res) => {
 
             const user = result[0];
 
-            bcrypt.compare(password, user.pass, (err, isMatch) => {
+            bcrypt.compare(pass, user.pass, (err, isMatch) => {
                 if (err) {
                     console.error("bcrypt error: ", err);
                     return res.status(500).json({ success: false, message: "Password comparison failed" });
@@ -78,10 +78,10 @@ for signup page
 */
 
 app.post("/signup", async (req, res) => {
-    const { username, password, faculty, enrolled_course, year_of_study, display_picture_link } = req.body;
+    const { username, pass, faculty, enrolled_course, year_of_study, display_picture_link } = req.body;
     try {
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(pass, saltRounds);
 
         const query = `
             INSERT INTO users 

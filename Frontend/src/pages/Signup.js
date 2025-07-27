@@ -32,7 +32,7 @@ function Signup() {
             "https://classify-backend-production.up.railway.app/signup",
             {
                 username: usernameReg,
-                password: passwordReg,
+                pass: passwordReg,
                 year_of_study: yearOfStudy,
                 enrolled_course: course,
                 faculty: faculty,
@@ -85,12 +85,12 @@ function Signup() {
             </div>
             <div className="mt-3">
                 <label htmlFor="username" className="block text-base mb-2">Enrolled Course</label>
-                <input type="text" id="username" placeholder="Enter Username..." onChange={e => setCourse(e.target.value)}
+                <input type="text" id="username" placeholder="Enter Course..." onChange={e => setCourse(e.target.value)}
                 className="border border-gray-200 w-full text-base px-2 py-1 focus:outline-none focus:ring-0 focus:border-gray-600" />
             </div>
             <div className="mt-3">
                 <label htmlFor="username" className="block text-base mb-2">Faculty</label>
-                <input type="text" id="username" placeholder="Enter Username..." onChange={e => setFaculty(e.target.value)}
+                <input type="text" id="username" placeholder="Enter Faculty..." onChange={e => setFaculty(e.target.value)}
                 className="border border-gray-200 w-full text-base px-2 py-1 focus:outline-none focus:ring-0 focus:border-gray-600" />
             </div>
             <div className="mt-3">
